@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AngleSharp;
-using AngleSharp.Parser.Html;
+using System.Net.Http;
+using HtmlAgilityPack;
 
 namespace QuoteWebScraper
 {
@@ -12,13 +12,45 @@ namespace QuoteWebScraper
     {
         static void Main(string[] args)
         {
-            var parser = new HtmlParser();
+            string url = "https://www.brainyquote.com/topics/motivational";
 
-            var webSource = "https://www.goodreads.com/quotes/tag?utf8=%E2%9C%93&id=motivational";
+            GetHtmlAsync(url);
+            
 
-            var document = parser.Parse(webSource);
+            Console.ReadKey();
+        }
+
+        private static async Task GetHtmlAsync(string url)
+        {
+            QuoteData quoteData = new QuoteData();
+            
+            HtmlWeb web = new HtmlWeb();
+            var htmlDocument = await web.LoadFromWebAsync(url);
+
+            var quoteHtml = htmlDocument.DocumentNode.Descendants("a")
+                .Where(node => node.GetAttributeValue("class","").Contains("b-qt")).ToList();
+
+            var authorHtml = htmlDocument.DocumentNode.Descendants("a")
+                .Where(node => node.GetAttributeValue("class","").Contains("bq-aut")).ToList();
+
+            int quoteListLength = quoteHtml.Count;
+
+            for (int i = 0; i < quoteListLength; i++)
+            {
+                quoteData.quotes.Add(quoteHtml[i].InnerText.Replace("&#39;", "'"));
+                quoteData.authors.Add(authorHtml[i].InnerText);
+            }
+
+            for (int i = 0; i < quoteListLength; i++)
+            {
+                Console.WriteLine(quoteData.quotes[i]);
+                Console.WriteLine(quoteData.authors[i]);
+                Console.WriteLine();
+            }
 
 
+
+            Console.WriteLine();
         }
     }
 }
