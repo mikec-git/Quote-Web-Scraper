@@ -12,7 +12,17 @@ namespace QuoteWebScraper
     {
         static void Main(string[] args)
         {
-            string url = "https://www.brainyquote.com/topics/motivational";
+            //string url = "https://www.brainyquote.com/topics/motivational?lgm=l";
+            string url = "https://www.goodreads.com/quotes/";
+
+            Console.WriteLine("Generate by tag (separate by spaces): ");
+            string keywords = Console.ReadLine();
+
+            Console.WriteLine("Enter the number of pages to query: ");
+            string numberOfPagesString = Console.ReadLine();
+            int numOfPages = Convert.ToInt32(numberOfPagesString);
+
+            
 
             GetHtmlAsync(url);
             
@@ -23,33 +33,34 @@ namespace QuoteWebScraper
         private static async Task GetHtmlAsync(string url)
         {
             QuoteData quoteData = new QuoteData();
-            
             HtmlWeb web = new HtmlWeb();
+
             var htmlDocument = await web.LoadFromWebAsync(url);
 
-            var quoteHtml = htmlDocument.DocumentNode.Descendants("a")
-                .Where(node => node.GetAttributeValue("class","").Contains("b-qt")).ToList();
+            // Stores the specified descendants for the quotes and authors
+            var quoteHtml = htmlDocument.DocumentNode.Descendants("div")
+                .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
 
             var authorHtml = htmlDocument.DocumentNode.Descendants("a")
-                .Where(node => node.GetAttributeValue("class","").Contains("bq-aut")).ToList();
+                .Where(node => node.GetAttributeValue("href", "").Contains("/author/") 
+                && node.GetAttributeValue("class","").Contains("authorOrTitle")).ToList();
 
-            int quoteListLength = quoteHtml.Count;
+            int listLength = quoteHtml.Count;
 
-            for (int i = 0; i < quoteListLength; i++)
+            // The quotes on this URI get converted into the following strings
+            string[] quoteDelim = new string[] { "&ldquo;", "&rdquo;" };
+            string extractedQuote;
+
+            for (int i = 0; i < listLength; i++)
             {
-                quoteData.quotes.Add(quoteHtml[i].InnerText.Replace("&#39;", "'"));
+                extractedQuote = quoteHtml[i].InnerHtml
+                    .Split(quoteDelim, StringSplitOptions.None)[1]
+                    .Replace("<br>", "\n");
+
+                quoteData.quotes.Add("\"" + extractedQuote + "\"");
                 quoteData.authors.Add(authorHtml[i].InnerText);
             }
-
-            for (int i = 0; i < quoteListLength; i++)
-            {
-                Console.WriteLine(quoteData.quotes[i]);
-                Console.WriteLine(quoteData.authors[i]);
-                Console.WriteLine();
-            }
-
-
-
+            
             Console.WriteLine();
         }
     }
