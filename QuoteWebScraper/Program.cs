@@ -19,19 +19,11 @@ namespace QuoteWebScraper
             Console.WriteLine("Generate by keyword (separate with spaces or commas): ");
             string keywords = Console.ReadLine();
 
-            Console.WriteLine("Enter the number of pages to query: ");
-            string numberOfPagesString = null; ;
-            do
-            {
-                numberOfPagesString = Console.ReadLine();
+            Console.WriteLine("\nEnter the number of pages to query: ");
+            string numberOfPagesString = Console.ReadLine();
 
-                if (string.IsNullOrEmpty(numberOfPagesString))
-                    numberOfPagesString = "0";
-
-            } while (string.IsNullOrEmpty(numberOfPagesString));
-
-            // Starting timer to compare Async vs Sync
-            stopwatch.Start();
+            if (string.IsNullOrEmpty(numberOfPagesString))
+                    numberOfPagesString = "1";
 
             int numOfPages = Convert.ToInt32(numberOfPagesString);
             if (numOfPages <= 0) numOfPages = 1;
@@ -39,6 +31,7 @@ namespace QuoteWebScraper
             if (!string.IsNullOrEmpty(keywords))
             {
                 char[] delim = new char[] { ' ', ',' };
+
                 string[] keywordList = keywords.Split(delim, StringSplitOptions.RemoveEmptyEntries);
                 int numOfKeywords = keywordList.Length;
 
@@ -57,14 +50,16 @@ namespace QuoteWebScraper
             {
                 url = url + "?page=";
             }
-            
-            Scraper scraper = new Scraper();
 
+            // Starting timer to compare Async vs Sync
+            stopwatch.Start();
+
+            Scraper scraper = new Scraper();
             scraper.PageLooperAsync(url, numOfPages).Wait();
 
             // Ending timer
             stopwatch.Stop();
-            Console.WriteLine($"Finished. Time Elapsed: {stopwatch.Elapsed}");
+            Console.WriteLine($"\nFinished. Time Elapsed: {stopwatch.Elapsed}");
 
             Console.ReadKey();
         }

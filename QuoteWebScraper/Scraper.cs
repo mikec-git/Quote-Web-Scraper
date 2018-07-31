@@ -40,7 +40,7 @@ namespace QuoteWebScraper
             }
 
             var allHtmlDocuments = await Task.WhenAll(htmlDocuments);
-            Console.WriteLine("Webpages Downloaded.\n");
+            Console.WriteLine("\nWebpages Downloaded.\n");
 
             // Exatracts the quote/author html nodes from each webpage
             foreach(HtmlDocument document in allHtmlDocuments)
