@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace QuoteWebScraper
 {
@@ -10,6 +11,8 @@ namespace QuoteWebScraper
     {
         static void Main(string[] args)
         {
+            Stopwatch stopwatch = new Stopwatch();
+
             // Scraping from https://goodreads.com for desired quotes
             string url = "https://www.goodreads.com/quotes";
 
@@ -26,6 +29,9 @@ namespace QuoteWebScraper
                     numberOfPagesString = "0";
 
             } while (string.IsNullOrEmpty(numberOfPagesString));
+
+            // Starting timer to compare Async vs Sync
+            stopwatch.Start();
 
             int numOfPages = Convert.ToInt32(numberOfPagesString);
             if (numOfPages <= 0) numOfPages = 1;
@@ -46,19 +52,21 @@ namespace QuoteWebScraper
 
                 url = url + "&page=";
             }
-            else { url = url + "?page="; }
-            
 
+            else
+            {
+                url = url + "?page=";
+            }
+            
             Scraper scraper = new Scraper();
 
             scraper.PageLooperAsync(url, numOfPages).Wait();
 
+            // Ending timer
+            stopwatch.Stop();
+            Console.WriteLine($"Finished. Time Elapsed: {stopwatch.Elapsed}");
 
-
-            Console.WriteLine("Finished");
             Console.ReadKey();
         }
-
-        
     }
 }
