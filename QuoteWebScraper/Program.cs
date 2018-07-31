@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using System.Net.Http;
-using HtmlAgilityPack;
+using System.Diagnostics;
 
 namespace QuoteWebScraper
 {
@@ -12,6 +11,8 @@ namespace QuoteWebScraper
     {
         static void Main(string[] args)
         {
+            Stopwatch stopwatch = new Stopwatch();
+
             // Scraping from https://goodreads.com for desired quotes
             string url = "https://www.goodreads.com/quotes";
 
@@ -28,6 +29,9 @@ namespace QuoteWebScraper
                     numberOfPagesString = "0";
 
             } while (string.IsNullOrEmpty(numberOfPagesString));
+
+            // Starting timer to compare Async vs Sync
+            stopwatch.Start();
 
             int numOfPages = Convert.ToInt32(numberOfPagesString);
             if (numOfPages <= 0) numOfPages = 1;
@@ -48,52 +52,21 @@ namespace QuoteWebScraper
 
                 url = url + "&page=";
             }
-            else { url = url + "?page="; }
 
-            GetHtmlAsync(url, numOfPages);
-            
-            Console.ReadKey();
-        }
-
-        private static async Task GetHtmlAsync(string url, int pages)
-        {
-            QuoteData quoteData = new QuoteData();
-            HtmlWeb web = new HtmlWeb();
-
-            string urlPage;
-
-            for (int i = 1; i <= pages; i++)
+            else
             {
-                urlPage = url + $"{i}&utf8=✓";
-
-                var htmlDocument = await web.LoadFromWebAsync(urlPage);
-
-                // Stores the specified descendants for the quotes and authors
-                var quoteHtml = htmlDocument.DocumentNode.Descendants("div")
-                    .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
-
-                var authorHtml = htmlDocument.DocumentNode.Descendants("a")
-                    .Where(node => node.GetAttributeValue("href", "").Contains("/author/")
-                    && node.GetAttributeValue("class", "").Contains("authorOrTitle")).ToList();
-
-                int listLength = quoteHtml.Count;
-
-                // Double quotes for this URL show up as the following deliminators
-                string[] quoteDelim = new string[] { "&ldquo;", "&rdquo;" };
-                string extractedQuote;
-
-                for (int j = 0; j < listLength; j++)
-                {
-                    extractedQuote = quoteHtml[j].InnerHtml
-                        .Split(quoteDelim, StringSplitOptions.None)[1]
-                        .Replace("<br>", "\n");
-
-                    quoteData.quotes.Add("\"" + extractedQuote + "\"");
-                    quoteData.authors.Add(authorHtml[j].InnerText);
-                }
+                url = url + "?page=";
             }
+            
+            Scraper scraper = new Scraper();
 
-            Console.WriteLine();
+            scraper.PageLooperAsync(url, numOfPages).Wait();
+
+            // Ending timer
+            stopwatch.Stop();
+            Console.WriteLine($"Finished. Time Elapsed: {stopwatch.Elapsed}");
+
+            Console.ReadKey();
         }
     }
 }
