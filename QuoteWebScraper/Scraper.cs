@@ -11,7 +11,6 @@ namespace QuoteWebScraper
     {
         HtmlWeb web;
         QuoteData quoteData;
-        QuoteHtmlData quoteHtmlData;
         
         List<Task<HtmlDocument>> htmlDocuments;
         List<Task<QuoteHtmlData>> htmlNodes;
@@ -20,25 +19,17 @@ namespace QuoteWebScraper
         {
             web             = new HtmlWeb();
             quoteData       = new QuoteData();
-            quoteHtmlData   = new QuoteHtmlData();
             htmlDocuments   = new List<Task<HtmlDocument>>();
             htmlNodes       = new List<Task<QuoteHtmlData>>();
         }
 
         public async Task PageLooperAsync(PageAndUrl pageAndUrl)
         {
-            string urlPage;
-
             // Stores async processes into a list of tasks
             if (pageAndUrl.pages.Count == 1)
             {
-                int upToPage = pageAndUrl.pages.First();
-
-                for (int i = 1; i <= upToPage; i++)
-                {
-                    urlPage = pageAndUrl.url + $"{i}&utf8=✓";
-                    htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
-                }
+                string urlPage = pageAndUrl.url + $"{pageAndUrl.pages.First()}&utf8=✓";
+                htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
             }
             else
             {
@@ -47,7 +38,7 @@ namespace QuoteWebScraper
 
                 for (int i = startPage; i <= endPage; i++)
                 {
-                    urlPage = pageAndUrl.url + $"{i}&utf8=✓";
+                    string urlPage = pageAndUrl.url + $"{i}&utf8=✓";
                     htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
                 }
             }
@@ -65,6 +56,8 @@ namespace QuoteWebScraper
             // Stores each quote and author into the QuoteData instance
             foreach(QuoteHtmlData data in allNodes)
                 SeparateIntoQuotesAndAuthors(data);
+
+            Console.WriteLine("Quotes and authors parsed.\n");
         }
 
         //public async Task PageLooperSync(string url, int pages)
@@ -84,6 +77,7 @@ namespace QuoteWebScraper
 
         private async Task<QuoteHtmlData> GetQuoteAndAuthor(HtmlDocument htmlDoc)
         {
+            QuoteHtmlData quoteHtmlData = new QuoteHtmlData();
 
             // Stores the specified descendants for the quotes and authors
             var quoteHtml = htmlDoc.DocumentNode.Descendants("div")
@@ -108,12 +102,12 @@ namespace QuoteWebScraper
 
             for (int j = 0; j < data.numOfQuotes; j++)
             {
-                extractedQuote = quoteHtmlData.quotesHtml[j].InnerHtml
+                extractedQuote = data.quotesHtml[j].InnerHtml
                                 .Split(quoteDelim, StringSplitOptions.None)[1]
                                 .Replace("<br>", "\n");
 
                 quoteData.quotes.Add("\"" + extractedQuote + "\"");
-                quoteData.authors.Add(quoteHtmlData.authorsHtml[j].InnerText);
+                quoteData.authors.Add(data.authorsHtml[j].InnerText);
             }
         }
     }

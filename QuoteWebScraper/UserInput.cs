@@ -8,10 +8,10 @@ namespace QuoteWebScraper
 {
     class UserInput
     {
-        private static char[] stringSplit = new char[] { ',' };
+        private static char[] stringSplit = new char[] { ',' , ':', '.' , '!' };
         private static char[] delim = new char[] { ' ', ',' };
 
-        public static PageAndUrl GetUrlStem(string url, string keywords, string numOfPagesString)
+        public static PageAndUrl GetUrlAndPages(string url, string keywords, string numOfPagesString)
         {
             PageAndUrl pageAndUrl = new PageAndUrl(url);
 
@@ -19,7 +19,7 @@ namespace QuoteWebScraper
 
             string[] pageRange = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
             
-            // Getting Pages to Query
+            // Getting Page Numbers to Query
             if (pageRange.Length > 1)
             {
                 pageAndUrl.pages = NumOfPagesArray(pageRange);
@@ -71,11 +71,6 @@ namespace QuoteWebScraper
             }
 
             return pages;
-        }
-
-        private static void urlKeywords()
-        {
-
         }
     }
 }
