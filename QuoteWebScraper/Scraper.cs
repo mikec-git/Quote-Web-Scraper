@@ -48,7 +48,7 @@ namespace QuoteWebScraper
 
             // Exatracts the quote/author html nodes from each webpage
             foreach(HtmlDocument document in allHtmlDocuments)
-                htmlNodes.Add(GetQuoteAndAuthor(document));
+                htmlNodes.Add(Task.Run(() => GetQuoteAndAuthor(document)));
 
             var allNodes = await Task.WhenAll(htmlNodes);
             Console.WriteLine("Nodes extracted.\n");
@@ -79,24 +79,20 @@ namespace QuoteWebScraper
         {
             QuoteHtmlData quoteHtmlData = new QuoteHtmlData();
 
-            // Stores the specified descendants for the quotes and authors
-            var quoteHtml = htmlDoc.DocumentNode.Descendants("div")
-                .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
+            quoteHtmlData.quotesHtml =  htmlDoc.DocumentNode.Descendants("div")
+                                        .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
 
-            var authorHtml = htmlDoc.DocumentNode.Descendants("a")
-                .Where(node => node.GetAttributeValue("href", "").Contains("/author/") && 
-                        node.GetAttributeValue("class", "").Contains("authorOrTitle")).ToList();
+            quoteHtmlData.authorsHtml = htmlDoc.DocumentNode.Descendants("a")
+                                        .Where(node => node.GetAttributeValue("href", "").Contains("/author/") && 
+                                        node.GetAttributeValue("class", "").Contains("authorOrTitle")).ToList();
             
-            quoteHtmlData.quotesHtml = quoteHtml;
-            quoteHtmlData.authorsHtml = authorHtml;
-            quoteHtmlData.numOfQuotes = quoteHtml.Count;
+            quoteHtmlData.numOfQuotes = quoteHtmlData.quotesHtml.Count;
 
             return quoteHtmlData;
         }
 
         private void SeparateIntoQuotesAndAuthors(QuoteHtmlData data)
         {
-            // Double quotes for this URL show up as the following deliminators
             string[] quoteDelim = new string[] { "&ldquo;", "&rdquo;" };
             string extractedQuote;
 
@@ -107,7 +103,7 @@ namespace QuoteWebScraper
                                 .Replace("<br>", "\n");
 
                 quoteData.quotes.Add("\"" + extractedQuote + "\"");
-                quoteData.authors.Add(data.authorsHtml[j].InnerText);
+                quoteData.authors.Add(data.authorsHtml[j].InnerText.Replace("&#39;", "'"));
             }
         }
     }
