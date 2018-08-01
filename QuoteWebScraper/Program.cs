@@ -19,43 +19,16 @@ namespace QuoteWebScraper
             Console.WriteLine("Generate by keyword (separate with spaces or commas): ");
             string keywords = Console.ReadLine();
 
-            Console.WriteLine("\nEnter the number of pages to query: ");
-            string numberOfPagesString = Console.ReadLine();
+            Console.WriteLine("\nEnter the number of pages to query. If you want a range of pages, enter the numbers separated by commas: ");
+            string numOfPagesString = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(numberOfPagesString))
-                    numberOfPagesString = "1";
-
-            int numOfPages = Convert.ToInt32(numberOfPagesString);
-            if (numOfPages <= 0) numOfPages = 1;
-
-            if (!string.IsNullOrEmpty(keywords))
-            {
-                char[] delim = new char[] { ' ', ',' };
-
-                string[] keywordList = keywords.Split(delim, StringSplitOptions.RemoveEmptyEntries);
-                int numOfKeywords = keywordList.Length;
-
-                url = url + $"/tag?id={keywordList[0]}";
-
-                if (numOfKeywords > 1)
-                {
-                    for (int i = 1; i < numOfKeywords; i++)
-                        url = url + $"+{keywordList[i]}";
-                }
-
-                url = url + "&page=";
-            }
-
-            else
-            {
-                url = url + "?page=";
-            }
+            PageAndUrl pageAndUrl = UserInput.GetUrlStem(url, keywords, numOfPagesString);
 
             // Starting timer to compare Async vs Sync
             stopwatch.Start();
 
             Scraper scraper = new Scraper();
-            scraper.PageLooperAsync(url, numOfPages).Wait();
+            scraper.PageLooperAsync(pageAndUrl).Wait();
 
             // Ending timer
             stopwatch.Stop();

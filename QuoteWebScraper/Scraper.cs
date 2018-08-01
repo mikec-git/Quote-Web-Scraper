@@ -9,34 +9,47 @@ namespace QuoteWebScraper
 {
     public class Scraper
     {
-        QuoteData quoteData;
         HtmlWeb web;
-
+        QuoteData quoteData;
+        QuoteHtmlData quoteHtmlData;
+        
         List<Task<HtmlDocument>> htmlDocuments;
         List<Task<QuoteHtmlData>> htmlNodes;
-        List<HtmlNode> quoteHtml;
-        List<HtmlNode> authorHtml;
-
+        
         public Scraper()
         {
-            quoteData   = new QuoteData();
-            web         = new HtmlWeb();
-
+            web             = new HtmlWeb();
+            quoteData       = new QuoteData();
+            quoteHtmlData   = new QuoteHtmlData();
             htmlDocuments   = new List<Task<HtmlDocument>>();
-            htmlNodes   = new List<Task<QuoteHtmlData>>();
-            quoteHtml   = new List<HtmlNode>();
-            authorHtml  = new List<HtmlNode>();
+            htmlNodes       = new List<Task<QuoteHtmlData>>();
         }
 
-        public async Task PageLooperAsync(string url, int pages)
+        public async Task PageLooperAsync(PageAndUrl pageAndUrl)
         {
             string urlPage;
 
             // Stores async processes into a list of tasks
-            for (int i = 1; i <= pages; i++)
+            if (pageAndUrl.pages.Count == 1)
             {
-                urlPage = url + $"{i}&utf8=✓";
-                htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
+                int upToPage = pageAndUrl.pages.First();
+
+                for (int i = 1; i <= upToPage; i++)
+                {
+                    urlPage = pageAndUrl.url + $"{i}&utf8=✓";
+                    htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
+                }
+            }
+            else
+            {
+                int startPage = pageAndUrl.pages.Min();
+                int endPage = pageAndUrl.pages.Max();
+
+                for (int i = startPage; i <= endPage; i++)
+                {
+                    urlPage = pageAndUrl.url + $"{i}&utf8=✓";
+                    htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
+                }
             }
 
             var allHtmlDocuments = await Task.WhenAll(htmlDocuments);
@@ -71,13 +84,12 @@ namespace QuoteWebScraper
 
         private async Task<QuoteHtmlData> GetQuoteAndAuthor(HtmlDocument htmlDoc)
         {
-            QuoteHtmlData quoteHtmlData = new QuoteHtmlData();
 
             // Stores the specified descendants for the quotes and authors
-            quoteHtml = htmlDoc.DocumentNode.Descendants("div")
+            var quoteHtml = htmlDoc.DocumentNode.Descendants("div")
                 .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
 
-            authorHtml = htmlDoc.DocumentNode.Descendants("a")
+            var authorHtml = htmlDoc.DocumentNode.Descendants("a")
                 .Where(node => node.GetAttributeValue("href", "").Contains("/author/") && 
                         node.GetAttributeValue("class", "").Contains("authorOrTitle")).ToList();
             
@@ -96,12 +108,12 @@ namespace QuoteWebScraper
 
             for (int j = 0; j < data.numOfQuotes; j++)
             {
-                extractedQuote = quoteHtml[j].InnerHtml
+                extractedQuote = quoteHtmlData.quotesHtml[j].InnerHtml
                                 .Split(quoteDelim, StringSplitOptions.None)[1]
                                 .Replace("<br>", "\n");
 
                 quoteData.quotes.Add("\"" + extractedQuote + "\"");
-                quoteData.authors.Add(authorHtml[j].InnerText);
+                quoteData.authors.Add(quoteHtmlData.authorsHtml[j].InnerText);
             }
         }
     }
