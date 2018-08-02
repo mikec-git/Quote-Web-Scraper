@@ -10,10 +10,11 @@ namespace QuoteWebScraper
     class Program
     {
         public static Stopwatch stopwatch = new Stopwatch();
+
         static void Main(string[] args)
         {
-            string url = "https://www.goodreads.com/quotes";
             Console.Title = "Quote Generator by Mike";
+            string url = "https://www.goodreads.com/quotes";
 
             Console.WriteLine("Generate quotes by keyword (separate with spaces/commas): ");
             string keywords = Console.ReadLine();
@@ -23,7 +24,7 @@ namespace QuoteWebScraper
 
             PageAndUrl pageAndUrl = UserInput.GetUrlAndPages(url, keywords, numOfPagesString);
 
-            // Starting timer to compare Async vs Sync
+            // Starting timer
             stopwatch.Start();
 
             Scraper scraper = new Scraper();
@@ -33,6 +34,7 @@ namespace QuoteWebScraper
             stopwatch.Stop();
 
             Console.WriteLine($"\nFinished. Time Elapsed: {stopwatch.Elapsed}");
+
             Console.ReadKey();
         }
     }

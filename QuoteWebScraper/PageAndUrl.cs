@@ -13,7 +13,7 @@ namespace QuoteWebScraper
 
         public PageAndUrl(string url)
         {
-            pages = new List<int>(0);
+            pages = new List<int>();
             this.url = url;
         }
     }

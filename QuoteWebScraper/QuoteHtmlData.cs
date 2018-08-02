@@ -15,8 +15,8 @@ namespace QuoteWebScraper
 
         public QuoteHtmlData()
         {
-            quotesHtml = new List<HtmlNode>(0);
-            authorsHtml = new List<HtmlNode>(0);
+            quotesHtml = new List<HtmlNode>();
+            authorsHtml = new List<HtmlNode>();
             numOfQuotes = 0;
         }
     }

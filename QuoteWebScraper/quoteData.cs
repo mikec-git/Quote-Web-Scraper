@@ -8,13 +8,13 @@ namespace QuoteWebScraper
 {
     public class QuoteData
     {
-        public List<string> quotes;
-        public List<string> authors;
+        public string quotes;
+        public string authors;
 
         public QuoteData()
         {
-            quotes = new List<string>(0);
-            authors = new List<string>(0);
+            quotes = null;
+            authors = null;
         }
     }
 }

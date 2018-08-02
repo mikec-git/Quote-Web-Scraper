@@ -16,7 +16,6 @@ namespace QuoteWebScraper
             PageAndUrl pageAndUrl = new PageAndUrl(url);
 
             numOfPagesString = PageEmptyCheck(numOfPagesString);
-
             string[] pageRangeString = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
             
             // Getting Page Numbers to Query
@@ -25,14 +24,20 @@ namespace QuoteWebScraper
                 pageAndUrl.pages = NumOfPagesArray(pageRangeString);
 
                 if (pageAndUrl.pages.Distinct().Count() == 1)
+                {
                     pageAndUrl.pages = new List<int> { pageAndUrl.pages.Distinct().First() };
+                }
             }
             else
             {
                 int page = Convert.ToInt32(pageRangeString.First());
-                if (page <= 0) pageRangeString[0] = "1";
 
-                pageAndUrl.pages = new List<int> { Convert.ToInt32(pageRangeString.First()) };
+                if (page <= 0)
+                {
+                    pageRangeString[0] = "1";
+                }
+
+                pageAndUrl.pages = new List<int> { Convert.ToInt32(pageRangeString[0]) };
             }
 
             // Getting URL Stem
@@ -46,20 +51,31 @@ namespace QuoteWebScraper
                 if (numOfKeywords > 1)
                 {
                     for (int i = 1; i < numOfKeywords; i++)
+                    {
                         pageAndUrl.url = pageAndUrl.url + $"+{keywordList[i]}";
+                    }
                 }
 
                 pageAndUrl.url = pageAndUrl.url + "&page=";
             }
-            else { pageAndUrl.url = pageAndUrl.url + "?page="; }
+            else
+            {
+                pageAndUrl.url = pageAndUrl.url + "?page=";
+            }
 
             return pageAndUrl;
         }
 
         private static string PageEmptyCheck(string numOfPagesString)
         {
-            if (string.IsNullOrEmpty(numOfPagesString)) return "1";
-            else                                        return numOfPagesString;
+            if (string.IsNullOrEmpty(numOfPagesString))
+            {
+                return "1";
+            }
+            else
+            {
+                return numOfPagesString;
+            }
         }
 
         private static List<int> NumOfPagesArray(string[] pageRangeString)
