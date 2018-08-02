@@ -13,11 +13,12 @@ namespace QuoteWebScraper
         static void Main(string[] args)
         {
             string url = "https://www.goodreads.com/quotes";
+            Console.Title = "Quote Generator by Mike";
 
-            Console.WriteLine("Generate by keyword (separate with spaces or commas): ");
+            Console.WriteLine("Generate quotes by keyword (separate with spaces/commas): ");
             string keywords = Console.ReadLine();
 
-            Console.WriteLine("\nEnter the number of pages to query. If you want a range of pages, enter the numbers separated by commas: ");
+            Console.WriteLine("\nEnter the page to query.\nTo get a range of pages, enter the start and end numbers of the range, separated by commas: ");
             string numOfPagesString = Console.ReadLine();
 
             PageAndUrl pageAndUrl = UserInput.GetUrlAndPages(url, keywords, numOfPagesString);

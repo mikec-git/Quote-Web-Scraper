@@ -17,19 +17,22 @@ namespace QuoteWebScraper
 
             numOfPagesString = PageEmptyCheck(numOfPagesString);
 
-            string[] pageRange = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
+            string[] pageRangeString = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
             
             // Getting Page Numbers to Query
-            if (pageRange.Length > 1)
+            if (pageRangeString.Length > 1)
             {
-                pageAndUrl.pages = NumOfPagesArray(pageRange);
+                pageAndUrl.pages = NumOfPagesArray(pageRangeString);
 
                 if (pageAndUrl.pages.Distinct().Count() == 1)
                     pageAndUrl.pages = new List<int> { pageAndUrl.pages.Distinct().First() };
             }
             else
             {
-                pageAndUrl.pages = new List<int> { Convert.ToInt32(pageRange.First()) };
+                int page = Convert.ToInt32(pageRangeString.First());
+                if (page <= 0) pageRangeString[0] = "1";
+
+                pageAndUrl.pages = new List<int> { Convert.ToInt32(pageRangeString.First()) };
             }
 
             // Getting URL Stem
@@ -59,15 +62,14 @@ namespace QuoteWebScraper
             else                                        return numOfPagesString;
         }
 
-        private static List<int> NumOfPagesArray(string[] pageRange)
+        private static List<int> NumOfPagesArray(string[] pageRangeString)
         {
-            List<string> pageRangeTwo = pageRange.Take(2).ToList();
+            List<string> pageRangeTwo = pageRangeString.Take(2).ToList();
             List<int> pages = pageRangeTwo.ConvertAll(x => Convert.ToInt32(x));
 
             for (int i = 0; i < pages.Count; i++)
             {
-                if (pages[i] <= 0)
-                    pages[i] = 1;
+                if (pages[i] <= 0) pages[i] = 1;
             }
 
             return pages;
