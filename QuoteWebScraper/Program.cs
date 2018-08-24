@@ -29,7 +29,7 @@ namespace QuoteWebScraper
             Scraper scraper = new Scraper();
 
             stopwatch.Start();
-            scraper.PageLooperAsync(pageAndUrl).Wait();
+            scraper.PageScraperAsync(pageAndUrl).Wait();
             stopwatch.Stop();
 
             Console.WriteLine($"\nFinished. Time Elapsed: {stopwatch.Elapsed}");

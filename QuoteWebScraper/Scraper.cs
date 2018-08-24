@@ -24,7 +24,7 @@ namespace QuoteWebScraper
         }
         #endregion
 
-        public async Task PageLooperAsync(PageAndUrl pageAndUrl)
+        public async Task PageScraperAsync(PageAndUrl pageAndUrl)
         {
             #region Asyncronously loads web pages
             if (pageAndUrl.pages.Count == 1)
@@ -84,9 +84,10 @@ namespace QuoteWebScraper
 
         private async Task<int> CheckMaxPageNumber(string url, int page)
         {
+            char[] delim = new char[] { ' ', ')' };
+
             HtmlDocument firstPage = await web.LoadFromWebAsync(url);
             List<HtmlNode> resultsTotal = firstPage.DocumentNode.Descendants("span").Where(node => node.GetAttributeValue("class", "").Equals("smallText")).ToList();
-            char[] delim = new char[] { ' ', ')' };
 
             string numOfResultsString = resultsTotal[0].InnerHtml.Split(delim, StringSplitOptions.RemoveEmptyEntries)[3].Replace(",", "");
             int results = Convert.ToInt32(numOfResultsString);

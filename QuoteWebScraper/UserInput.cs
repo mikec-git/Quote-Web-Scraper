@@ -34,12 +34,12 @@ namespace QuoteWebScraper
 
             List<int> pages = pageRange.ConvertAll(x => Convert.ToInt32(x));
 
-            for (int i = 0; i < pageRange.Count; i++)
+            for (int i = 0; i < pages.Count; i++)
             {
                 if (pages[i] <= 0) pages[i] = 1;
             }
 
-            if (pages[1] > pages[0]) SwapPages(pages);
+            if (pages.Count > 1 && pages[1] < pages[0]) SwapPages(pages);
 
             pageAndUrl.pages = pages.Distinct().ToList();
         }
@@ -77,7 +77,7 @@ namespace QuoteWebScraper
         {
             int temp = pages[1];
             pages[1] = pages[0];
-            pages[0] = pages[1];
+            pages[0] = temp;
         }
     }
 }
