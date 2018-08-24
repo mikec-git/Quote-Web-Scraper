@@ -8,8 +8,8 @@ namespace QuoteWebScraper
 {
     class UserInput
     {
-        private static char[] stringSplit = new char[] { ',' , ':', '.' , '!' };
-        private static char[] delim = new char[] { ' ', ',' };
+        private static char[] stringSplit   = new char[] { ',' , ':', '.' , '!' };
+        private static char[] delim         = new char[] { ' ', ',' };
 
         public static PageAndUrl GetUrlAndPages(string url, string keywords, string numOfPagesString)
         {
