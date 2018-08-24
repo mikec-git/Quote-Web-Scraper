@@ -26,17 +26,13 @@ namespace QuoteWebScraper
             UserInput.GetPages(pageAndUrl, numOfPagesString);
             UserInput.GetUrl(pageAndUrl, keywords);
 
-            // Starting timer
-            stopwatch.Start();
-
             Scraper scraper = new Scraper();
-            scraper.PageLooperAsync(pageAndUrl).Wait();
 
-            // Ending timer
+            stopwatch.Start();
+            scraper.PageLooperAsync(pageAndUrl).Wait();
             stopwatch.Stop();
 
             Console.WriteLine($"\nFinished. Time Elapsed: {stopwatch.Elapsed}");
-
             Console.ReadKey();
         }
     }
