@@ -11,16 +11,16 @@ namespace QuoteWebScraper
     {
         #region Initializing instance variables
         private HtmlWeb web;
-        private List<QuoteData> quoteData;
-        private List<Task<HtmlDocument>> htmlDocuments;
-        private List<Task<QuoteHtmlData>> htmlNodes;
+        private List<QuoteData> QuotesAndAuthorsText;
+        private List<QuoteHtmlData> QuoteAndAuthorNodes;
+        private List<Task<HtmlDocument>> htmlDocsList;
 
         public Scraper()
         {
-            web             = new HtmlWeb();
-            quoteData       = new List<QuoteData>();
-            htmlDocuments   = new List<Task<HtmlDocument>>();
-            htmlNodes       = new List<Task<QuoteHtmlData>>();
+            web                     = new HtmlWeb();
+            QuotesAndAuthorsText    = new List<QuoteData>();
+            QuoteAndAuthorNodes     = new List<QuoteHtmlData>();
+            htmlDocsList            = new List<Task<HtmlDocument>>();
         }
         #endregion
 
@@ -29,114 +29,95 @@ namespace QuoteWebScraper
             #region Asyncronously loads web pages
             if (pageAndUrl.pages.Count == 1)
             {
-                if (pageAndUrl.pages[0] != 1)
-                {
-                    pageAndUrl.pages[0] = await CheckMaxPageNumber(pageAndUrl.url, pageAndUrl.pages[0]);
-                }
+                int startPage;
 
-                string urlPage = pageAndUrl.url + $"{pageAndUrl.pages[0]}&utf8=✓";
-                htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
+                if(pageAndUrl.pages[0] == 1)    startPage = pageAndUrl.pages[0];
+                else                            startPage = await MaxPossiblePageCheck(pageAndUrl.url, pageAndUrl.pages[0]);
+
+                string urlPage = pageAndUrl.url + $"{startPage}&utf8=✓";
+                htmlDocsList.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
             }
             else
             {
-                int startPage   = pageAndUrl.pages.Min();
-                int endPage     = pageAndUrl.pages.Max();
-                int maxIndex    = pageAndUrl.pages.IndexOf(endPage);
-
-                pageAndUrl.pages[maxIndex] = await CheckMaxPageNumber(pageAndUrl.url, endPage);
-                endPage = pageAndUrl.pages[maxIndex];
-
-                if (endPage < startPage)
-                {
-                    startPage = endPage;
-                }
+                int startPage   = pageAndUrl.pages[0];
+                int endPage     = await MaxPossiblePageCheck(pageAndUrl.url, pageAndUrl.pages[1]);
 
                 for (int i = startPage; i <= endPage; i++)
-                {
-                    string urlPage = pageAndUrl.url + $"{i}&utf8=✓";
-                    htmlDocuments.Add(Task.Run(() => web.LoadFromWebAsync(urlPage)));
-                }
+                    htmlDocsList.Add(Task.Run(() => web.LoadFromWebAsync(pageAndUrl.url + $"{i}&utf8=✓")));
             }
 
-            var allHtmlDocuments = await Task.WhenAll(htmlDocuments);
+            var allHtmlDocuments = await Task.WhenAll(htmlDocsList);
             Console.WriteLine("\nWebpages Downloaded.\n");
             #endregion
 
-            #region Exatracts quote/author html nodes from each page
+            #region Exatracts quote and author html nodes from each page
             foreach (HtmlDocument document in allHtmlDocuments)
-            {
-                htmlNodes.Add(Task.Run(() => GetQuoteAndAuthor(document)));
-            }
-
-            QuoteHtmlData[] allNodes = await Task.WhenAll(htmlNodes);
+                QuoteAndAuthorNodes.Add(GetQuoteAndAuthorNode(document));
+            
+            QuoteHtmlData[] QuoteAuthorNodesArray = QuoteAndAuthorNodes.ToArray();
             Console.WriteLine("Nodes extracted.\n");
             #endregion
 
-            #region Stores quotes & authors into data instance
-            foreach (QuoteHtmlData data in allNodes)
-            {
-                SeparateIntoQuotesAndAuthors(data);
-            }
+            #region Stores quotes & authors into quoteData
+            foreach (QuoteHtmlData node in QuoteAuthorNodesArray)
+                GetQuotesAndAuthorsText(node);
 
             Console.WriteLine("Quotes and authors parsed.\n");
             #endregion
         }
 
-        private async Task<int> CheckMaxPageNumber(string url, int page)
+        private async Task<int> MaxPossiblePageCheck(string url, int page)
         {
             char[] delim = new char[] { ' ', ')' };
 
             HtmlDocument firstPage = await web.LoadFromWebAsync(url);
+
             List<HtmlNode> resultsTotal = firstPage.DocumentNode.Descendants("span").Where(node => node.GetAttributeValue("class", "").Equals("smallText")).ToList();
 
             string numOfResultsString = resultsTotal[0].InnerHtml.Split(delim, StringSplitOptions.RemoveEmptyEntries)[3].Replace(",", "");
+
             int results = Convert.ToInt32(numOfResultsString);
 
             // Each page has 30 results max
             if (results <= 30)  return 1;
 
-            // Checking if inputted page exceeds total number of result pages
-            else if (results > 30 && (results / (page*30)) < 1)
-            {
+            // Check if use input page greater than max result page
+            if (results > 30 && (results / (page*30)) < 1)
                 return (int)Math.Ceiling((double)results / 30);
-            }
 
             return page;
         }
 
-        private async Task<QuoteHtmlData> GetQuoteAndAuthor(HtmlDocument htmlDoc)
+        private QuoteHtmlData GetQuoteAndAuthorNode(HtmlDocument htmlDoc)
         {
             QuoteHtmlData quoteHtmlData = new QuoteHtmlData();
 
-            quoteHtmlData.quotesHtml =  htmlDoc.DocumentNode.Descendants("div")
-                                               .Where(node => node.GetAttributeValue("class","").Equals("quoteText")).ToList();
+            quoteHtmlData.quotesHtml = htmlDoc.DocumentNode.Descendants("div")
+                                               .Where(node => node.GetAttributeValue("class", "").Equals("quoteText")).ToList();
 
             quoteHtmlData.authorsHtml = htmlDoc.DocumentNode.Descendants("a")
-                                               .Where(node => node.GetAttributeValue("href","").Contains("/author/") && node.GetAttributeValue("class","").Contains("authorOrTitle")).ToList();
-            
+                                               .Where(node => node.GetAttributeValue("href", "").Contains("/author/") && node.GetAttributeValue("class", "").Contains("authorOrTitle")).ToList();
+
             quoteHtmlData.numOfQuotes = quoteHtmlData.quotesHtml.Count;
 
             return quoteHtmlData;
         }
 
-        private void SeparateIntoQuotesAndAuthors(QuoteHtmlData quoteData)
+        private void GetQuotesAndAuthorsText(QuoteHtmlData quoteAuthorNode)
         {
-            string[] quoteDelim = new string[] { "&ldquo;", "&rdquo;" };
-            string quotation = "&#39;";
-            string extractedQuote;
-            int numberOfQuotes = quoteData.numOfQuotes;
+            string[] delim = new string[] { "&ldquo;", "&rdquo;" };
 
-            for (int j = 0; j < numberOfQuotes; j++)
+            for (int j = 0; j < quoteAuthorNode.numOfQuotes; j++)
             {
-                extractedQuote = quoteData.quotesHtml[j].InnerHtml.Split(quoteDelim, StringSplitOptions.None)[1].Replace("<br>", "\n");
+                string extractedQuote = quoteAuthorNode.quotesHtml[j].InnerHtml.Split(delim, StringSplitOptions.None)[1].Replace("<br>", "\n");
 
-                QuoteData tempData = new QuoteData()
-                {
-                    quotes = "\"" + extractedQuote + "\"",
-                    authors = quoteData.authorsHtml[j].InnerText.Replace(quotation, "'")
-                };
+                QuoteData quoteAuthorPair = new QuoteData
+                (
+                    Quote:  @"" + extractedQuote + "",
+                    Author: quoteAuthorNode.authorsHtml[j].InnerText.Replace("&#39;", "'")
+                );
 
-                this.quoteData.Add(tempData);
+                QuotesAndAuthorsText.Add(quoteAuthorPair);
             }
         }
 
