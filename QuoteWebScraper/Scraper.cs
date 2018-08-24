@@ -92,10 +92,8 @@ namespace QuoteWebScraper
             int results = Convert.ToInt32(numOfResultsString);
 
             // Each page has 30 results max
-            if (results <= 30)
-            {
-                return 1;
-            }
+            if (results <= 30)  return 1;
+
             // Checking if inputted page exceeds total number of result pages
             else if (results > 30 && (results / (page*30)) < 1)
             {

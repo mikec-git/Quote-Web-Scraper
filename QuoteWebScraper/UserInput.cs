@@ -13,7 +13,7 @@ namespace QuoteWebScraper
 
         public static void GetPages(PageAndUrl pageAndUrl, string numOfPagesString)
         {
-            numOfPagesString = NoPageInputCheck(numOfPagesString);
+            numOfPagesString = PageInputNullCheck(numOfPagesString);
 
             string[] pageRangeString = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
             List<string> pageRange = new List<string>() { pageRangeString[0] };
@@ -38,6 +38,8 @@ namespace QuoteWebScraper
             {
                 if (pages[i] <= 0) pages[i] = 1;
             }
+
+            if (pages[1] > pages[0]) SwapPages(pages);
 
             pageAndUrl.pages = pages.Distinct().ToList();
         }
@@ -65,10 +67,17 @@ namespace QuoteWebScraper
             pageAndUrl.url = newUrl.ToString();
         }
 
-        private static string NoPageInputCheck(string numOfPagesString)
+        private static string PageInputNullCheck(string numOfPagesString)
         {
             if (string.IsNullOrEmpty(numOfPagesString)) return "1";
             else                                        return numOfPagesString;
         }        
+
+        private static void SwapPages(List<int> pages)
+        {
+            int temp = pages[1];
+            pages[1] = pages[0];
+            pages[0] = pages[1];
+        }
     }
 }
