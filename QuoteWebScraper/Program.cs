@@ -22,7 +22,9 @@ namespace QuoteWebScraper
             Console.WriteLine("\nEnter the page to query.\nTo get a range of pages, enter the start and end numbers of the range, separated by commas: ");
             string numOfPagesString = Console.ReadLine();
 
-            PageAndUrl pageAndUrl = UserInput.GetUrlAndPages(url, keywords, numOfPagesString);
+            PageAndUrl pageAndUrl = new PageAndUrl(url);
+            UserInput.GetPages(pageAndUrl, numOfPagesString);
+            UserInput.GetUrl(pageAndUrl, keywords);
 
             // Starting timer
             stopwatch.Start();

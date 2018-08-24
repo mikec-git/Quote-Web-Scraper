@@ -11,13 +11,11 @@ namespace QuoteWebScraper
         private static char[] stringSplit   = new char[] { ',' , ':', '.' , '!' };
         private static char[] delim         = new char[] { ' ', ',' };
 
-        public static PageAndUrl GetUrlAndPages(string url, string keywords, string numOfPagesString)
+        public static void GetPages(PageAndUrl pageAndUrl, string numOfPagesString)
         {
-            PageAndUrl pageAndUrl = new PageAndUrl(url);
-
             numOfPagesString = PageEmptyCheck(numOfPagesString);
             string[] pageRangeString = numOfPagesString.Split(stringSplit, StringSplitOptions.RemoveEmptyEntries);
-            
+
             // Getting Page Numbers to Query
             if (pageRangeString.Length > 1)
             {
@@ -39,7 +37,10 @@ namespace QuoteWebScraper
 
                 pageAndUrl.pages = new List<int> { Convert.ToInt32(pageRangeString[0]) };
             }
+        }
 
+        public static void GetUrl(PageAndUrl pageAndUrl, string keywords)
+        { 
             // Getting URL Stem
             if (!string.IsNullOrEmpty(keywords))
             {
@@ -62,8 +63,6 @@ namespace QuoteWebScraper
             {
                 pageAndUrl.url = pageAndUrl.url + "?page=";
             }
-
-            return pageAndUrl;
         }
 
         private static string PageEmptyCheck(string numOfPagesString)
